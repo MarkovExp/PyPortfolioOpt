@@ -202,6 +202,22 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         self.add_constraint(lambda w: cp.sum(w) == 1)
         return self._solve_cvxpy_opt_problem()
+        
+    def min_volatility_scaled(self, market_exposure):
+        """
+        Minimise volatility.
+
+        :return: asset weights for the volatility-minimising portfolio
+        :rtype: OrderedDict
+        """
+        self._objective = objective_functions.portfolio_variance(
+            self._w, self.cov_matrix
+        )
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self.add_constraint(lambda w: cp.sum(w) == market_exposure)
+        return self._solve_cvxpy_opt_problem()
 
     def _max_return(self, return_value=True):
         """
